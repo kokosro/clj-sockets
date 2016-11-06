@@ -10,7 +10,7 @@
   (:require [clojure.core.typed :as t :refer [ann]]
             [clojure.java.io :refer [writer reader]])
   (:refer-clojure :exclude [read-line])
-  (:import (java.net Socket ServerSocket)
+  (:import (java.net Socket ServerSocket InetSocketAddress)
            (java.io BufferedWriter BufferedReader)
            (clojure.lang Seqable)))
 
@@ -25,8 +25,12 @@
 (defn create-socket
   "Connect a socket to a remote host. The call blocks until
    the socket is connected."
-  [^String hostname ^Integer port]
-  (Socket. hostname port))
+  [^String hostname ^Integer port ^Integer timeout]
+  (let [sock (Socket.)
+        _ (.setSoTimeout sock timeout) ;;socket timeout on read - hate to be stuck
+        _ (.connect sock (InetSocketAddress. hostname port) timeout) ;;socket timeout on connect
+        ]
+    sock))
 
 (ann close-socket [Socket -> nil])
 (defn close-socket
